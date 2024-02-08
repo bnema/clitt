@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/bnema/clitt/io/db"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -11,21 +12,38 @@ func (m Model) View() string {
 
 	// Status (right side)
 	var status []string
+
+	// If the form is completed, show the task details
 	if m.form.State == huh.StateCompleted {
-		// old status fmt.Sprintf("Duration: %s\nTask: %s\nCategory: %s", m.tick, m.taskDescription, m.taskCategory)
+
 		status = []string{
 			"Duration: " + m.tick.String(),
 			"Task: " + m.taskDescription,
 			"Category: " + m.taskCategory,
 		}
 
+		conn := db.NewDB()
+		// Map status to a db.Task struct
+		task := db.Task{
+			Duration: m.tick,
+			Task:     m.taskDescription,
+			Category: m.taskCategory,
+		}
+
+		// Insert the task into the database
+		conn.CreateTask(task)
+
 	} else {
 		status = []string{
 			"Timer: " + m.tick.String(),
 		}
 	}
+
+	// Status width
 	const statusWidth = 30
 	const statusWidthWhenCompleted = 45
+
+	//
 	statusMarginLeft := m.width - statusWidth - lipgloss.Width(formView) - s.Status.GetMarginRight()
 	statusView := s.Status.Copy().
 		Width(statusWidthWhenCompleted).
