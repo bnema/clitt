@@ -1,31 +1,36 @@
 package ui
 
 import (
-	"fmt"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
-
 
 func (m Model) View() string {
 	s := m.styles
 	formView := m.form.View()
 
 	// Status (right side)
-	var status string
+	var status []string
 	if m.form.State == huh.StateCompleted {
-		status = fmt.Sprintf("Duration: %s\nTask: %s\nCategory: %s", m.tick, m.taskDescription, m.taskCategory)
-		// TAKE THE FULL WIDTH
+		// old status fmt.Sprintf("Duration: %s\nTask: %s\nCategory: %s", m.tick, m.taskDescription, m.taskCategory)
+		status = []string{
+			"Duration: " + m.tick.String(),
+			"Task: " + m.taskDescription,
+			"Category: " + m.taskCategory,
+		}
 
 	} else {
-		status = "Timer: " + m.tick.String()
+		status = []string{
+			"Timer: " + m.tick.String(),
+		}
 	}
 	const statusWidth = 30
+	const statusWidthWhenCompleted = 45
 	statusMarginLeft := m.width - statusWidth - lipgloss.Width(formView) - s.Status.GetMarginRight()
 	statusView := s.Status.Copy().
-		Width(statusWidth).
+		Width(statusWidthWhenCompleted).
 		MarginLeft(statusMarginLeft).
-		Render(status)
+		Render(status...)
 
 	errors := m.form.Errors()
 	header := m.appBoundaryView("Command Line Time Tracker v0.1")

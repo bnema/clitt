@@ -9,15 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type state int
-
-const (
-	statusNormal state = iota
-	stateDone
-)
-
 type Model struct {
-	state           state
 	lg              *lipgloss.Renderer
 	styles          *Styles
 	form            *huh.Form
@@ -26,9 +18,8 @@ type Model struct {
 	width           int
 	taskCategory    string
 	taskDescription string
-  taskCategories  []string  
+	taskCategories  []string
 }
-
 
 type tickMsg struct{}
 
@@ -40,7 +31,7 @@ func NewModel() Model {
 	m := Model{width: maxWidth, start: time.Now()}
 	m.lg = lipgloss.DefaultRenderer()
 	m.styles = NewStyles(m.lg)
-  m.taskCategories =  []string{"Internal Call", "Training", "Technical Service", "Phone Support", "Email Processing", "Development"}
+	m.taskCategories = []string{"Internal Call", "Training", "Technical Service", "Phone Support", "Email Processing", "Development"}
 
 	m.form = huh.NewForm(
 		huh.NewGroup(
@@ -71,7 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = min(msg.Width, maxWidth) - m.styles.Base.GetHorizontalFrameSize()
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc", "ctrl+c", "q":
+		case "esc", "ctrl+c":
 			return m, tea.Quit
 		}
 	case tickMsg:
@@ -95,4 +86,3 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	return m, tea.Batch(cmds...)
 }
-
