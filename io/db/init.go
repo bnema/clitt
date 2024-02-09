@@ -2,13 +2,15 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/google/uuid"
 	_ "modernc.org/sqlite"
 )
+
+const dbFile = "clitt.sqlite"
 
 type DB struct {
 	conn *sql.DB
@@ -16,46 +18,60 @@ type DB struct {
 
 // Task table structure : id, duration, task input text from the user, category
 type Task struct {
-	ID       uuid.UUID
+	ID       int
 	Duration time.Duration
 	Task     string
 	Category string
 }
 
-// InitDB creates the database and the table
-func InitDB() {
-	// check if the file exists
-	if _, err := os.Stat("clitt.db"); err == nil {
+// InitDB creates the database and the table if they do not exist.
+func InitDB() error {
+	if fileExists(dbFile) {
 		log.Println("Database already exists")
-		return
-	} else if os.IsNotExist(err) {
-		// create file if not exists
-		f, err := os.Create("clitt.db")
-		if err != nil {
-			log.Fatal(err)
-		}
-		f.Close()
-	}
-	// open the database
-	db, err := sql.Open("sqlite", "./clitt.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	// if the table exists, don't create it
-	_, err = db.Exec("create table if not exists task (id text not null primary key, duration timestamp, task text, category text)")
-	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
 
-	// success in log
-	log.Println("Database initialized")
+	// Open the database, creates the file if it doesn't exist.
+	db, err := sql.Open("sqlite3", dbFile)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %v", err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
+
+	if err := createTable(db); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// fileExists checks the existence of a file.
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
+}
+
+// createTable creates the task table if it does not exist.
+func createTable(db *sql.DB) error {
+	createTableSQL := `CREATE TABLE IF NOT EXISTS task (
+        id INTEGER PRIMARY KEY, 
+        duration TIMESTAMP, 
+        task TEXT, 
+        category TEXT
+    );`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		return fmt.Errorf("failed to create table: %v", err)
+	}
+	return nil
 }
 
 // NewDB creates a new database connection
 func NewDB() *DB {
-	db, err := sql.Open("sqlite", "./clitt.db")
+	db, err := sql.Open("sqlite", "./clitt.sqlite")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -11,7 +11,7 @@ import (
 
 // CreateTask creates a new task in the database.
 func (db *DB) CreateTask(task Task) error {
-	_, err := db.conn.Exec("INSERT INTO task (id, duration, task, category) VALUES (?, ?, ?, ?)", task.ID, task.Duration, task.Task, task.Category)
+	_, err := db.conn.Exec("INSERT INTO task (duration, task, category) VALUES (?, ?, ?)", task.Duration, task.Task, task.Category)
 	return err
 }
 

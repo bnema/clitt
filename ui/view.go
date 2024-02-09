@@ -22,7 +22,7 @@ func (m Model) View() string {
 			"Category: " + m.taskCategory,
 		}
 
-		conn := db.NewDB()
+		sqlite := db.NewDB()
 		// Map status to a db.Task struct
 		task := db.Task{
 			Duration: m.tick,
@@ -31,7 +31,12 @@ func (m Model) View() string {
 		}
 
 		// Insert the task into the database
-		conn.CreateTask(task)
+		err := sqlite.CreateTask(task)
+		if err != nil {
+			status = append(status, "Error: "+err.Error())
+		}
+
+		sqlite.Close()
 
 	} else {
 		status = []string{
